@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghazanfar Leather Pro</title>
+    <style>
+        :root { --primary: #e67e22; --secondary: #f1c40f; --dark: #2c3e50; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; color: #333; }
+        
+        .header { 
+            background: linear-gradient(135deg, #d35400, #f39c12); 
+            color: white; padding: 25px 15px; text-align: center; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border-bottom: 4px solid #ba4a00;
+        }
+        
+        /* Kamal ka Leather Patch Logo */
+        .leather-logo { 
+            width: 65px; height: 65px; 
+            background: radial-gradient(circle, #a04000, #5d4037);
+            border: 2px dashed rgba(255,255,255,0.6); 
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 35px; font-weight: bold; color: #f1c40f;
+            box-shadow: inset 0 0 10px #000, 3px 3px 10px rgba(0,0,0,0.3);
+            text-shadow: 2px 2px 2px #000;
+            margin: 0 auto 10px auto;
+            transform: rotate(-3deg);
+        }
+
+        .container { padding: 15px; max-width: 500px; margin: auto; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; text-align: right; font-size: 16px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
+        
+        .btn { padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 15px; }
+        .btn-add { background: #2c3e50; color: white; width: 100%; margin-bottom: 15px; border-bottom: 3px solid #1a252f; }
+        .btn-get { background: #27ae60; color: white; flex: 1; border-bottom: 3px solid #1e8449; }
+        .btn-give { background: #c0392b; color: white; flex: 1; border-bottom: 3px solid #922b21; }
+        .btn-backup { background: #2980b9; color: white; width: 100%; margin-top: 25px; }
+        
+        .cust-item { background: white; padding: 18px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 3px 10px rgba(0,0,0,0.08); cursor: pointer; border-right: 6px solid #e67e22; }
+        
+        #detailsView { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f4f7f6; z-index: 1000; overflow-y: auto; }
+        .history-table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .history-table th { background: #ecf0f1; padding: 12px; border-bottom: 2px solid #ddd; font-size: 14px; color: #7f8c8d; }
+        .history-table td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; font-size: 13px; }
+        
+        .whatsapp-btn { background: #25D366; color: white; width: 100%; margin-top: 15px; border-bottom: 3px solid #128C7E; }
+        .balance-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div id="homeView">
+    <div class="header">
+        <div class="leather-logo">غ</div>
+        <h1 style="margin:0; letter-spacing: 1px;">غضنفر لیدر</h1>
+        <small style="opacity: 0.8;">ڈیجیٹل لیجر بک</small>
+    </div>
+    <div class="container">
+        <input type="text" id="newCustName" placeholder="کسٹمر کا نام لکھیں...">
+        <button class="btn btn-add" onclick="addCustomer()">+ نیا کسٹمر شامل کریں</button>
+        
+        <input type="text" id="searchBar" placeholder="تلاش کریں (Search)..." onkeyup="loadHome()">
+        
+        <div id="custList"></div>
+        
+        <button class="btn btn-backup" onclick="exportToCSV()">📥 بیک اپ (Excel File)</button>
+    </div>
+</div>
+
+<div id="detailsView">
+    <div class="header" style="padding: 15px;">
+        <div style="display:flex; justify-content: space-between; align-items:center;">
+            <button onclick="goBack()" style="background:none; border:none; color:white; font-size:28px;">➜</button>
+            <h2 id="activeCustTitle" style="margin:0;">کھاتہ</h2>
+            <div id="statusLabel" style="font-size: 14px; background: rgba(0,0,0,0.2); padding: 5px 12px; border-radius: 20px; font-weight:bold;"></div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="balance-card">
+            <div style="display:flex; gap:8px;">
+                <input type="text" id="billNo" placeholder="بل نمبر (Bill No)">
+                <input type="text" id="transNote" placeholder="تفصیل (Note)">
+            </div>
+            <input type="number" id="transAmount" placeholder="رقم (Amount)">
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button class="btn btn-get" onclick="saveTrans('get')">Credit (جمع)</button>
+                <button class="btn btn-give" onclick="saveTrans('give')">Debit (بنام)</button>
+            </div>
+        </div>
+        
+        <button class="btn whatsapp-btn" onclick="shareWhatsApp()">💬 WhatsApp پر تفصیل بھیجیں</button>
+
+        <table class="history-table">
+            <thead><tr><th>تفصیل / تاریخ</th><th>رقم</th></tr></thead>
+            <tbody id="historyBody"></tbody>
+        </table>
+        
+        <button class="btn" style="background:#ddd; color:#c0392b; width:100%; margin-top:40px;" onclick="deleteCustomer()">🗑️ کسٹمر ریکارڈ ختم کریں</button>
+    </div>
+</div>
+
+<script>
+    let currentCustomer = "";
+    const DB_NAME = 'leather_pro_final_v6'; 
+
+    window.onload = loadHome;
+
+    function addCustomer() {
+        let name = document.getElementById('newCustName').value.trim();
+        if(!name) return;
+        let data = JSON.parse(localStorage.getItem(DB_NAME)) || {};
+        if(!data[name]) data[name] = [];
+        localStorage.setItem(DB_NAME, JSON.stringify(data));
+        document.getElementById('newCustName').value = "";
+        loadHome();
+    }
+
+    function loadHome() {
+        let data = JSON.parse(localStorage.getItem(DB_NAME)) || {};
+        let search = document.getElementById('searchBar').value.toLowerCase();
+        let html = "";
+        for(let name in data) {
+            if(name.toLowerCase().includes(search)) {
+                let bal = 0;
+                data[name].forEach(t => bal += (t.type=='give' ? parseFloat(t.amount) : -parseFloat(t.amount)));
+                let text = bal > 0 ? "Debit (بنام)" : (bal < 0 ? "Credit (جمع)" : "Clear");
+                let color = bal > 0 ? "#c0392b" : (bal < 0 ? "#27ae60" : "gray");
+                html += `<div class="cust-item" onclick="viewDetails('${name}')">
+                    <span><strong>${name}</strong></span>
+                    <span style="color:${color}; font-weight:bold;">${Math.abs(bal)} <small style="font-size:10px;">${text}</small></span>
+                </div>`;
+            }
+        }
+        document.getElementById('custList').innerHTML = html;
+    }
+
+    function viewDetails(name) {
+        currentCustomer = name;
+        document.getElementById('activeCustTitle').innerText = name;
+        document.getElementById('homeView').style.display = "none";
+        document.getElementById('detailsView').style.display = "block";
+        loadTransactions();
+    }
+
+    function goBack() { 
+        document.getElementById('homeView').style.display = "block";
+        document.getElementById('detailsView').style.display = "none";
+        loadHome(); 
+    }
+
+    function saveTrans(type) {
+        let amt = document.getElementById('transAmount').value;
+        let note = document.getElementById('transNote').value || "No Detail";
+        let bill = document.getElementById('billNo').value || "-";
+        if(!amt) return;
+        let now = new Date();
+        let dateStr = now.toLocaleDateString('en-GB') + " " + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        let data = JSON.parse(localStorage.getItem(DB_NAME));
+        data[currentCustomer].push({ amount: amt, note: note, bill: bill, type: type, date: dateStr });
+        localStorage.setItem(DB_NAME, JSON.stringify(data));
+        document.getElementById('transAmount').value = "";
+        document.getElementById('transNote').value = "";
+        document.getElementById('billNo').value = "";
+        loadTransactions();
+    }
+
+    function loadTransactions() {
+        let data = JSON.parse(localStorage.getItem(DB_NAME));
+        let history = data[currentCustomer] || [];
+        let html = ""; let bal = 0;
+        history.slice().reverse().forEach(t => {
+            let isGive = t.type == 'give';
+            bal += isGive ? parseFloat(t.amount) : -parseFloat(t.amount);
+            html += `<tr>
+                <td style="text-align:right;">
+                    <small style="color:#7f8c8d;">Bill: ${t.bill}</small><br>
+                    <strong>${t.note}</strong><br>
+                    <small style="color:#999; font-size:10px;">${t.date}</small>
+                </td>
+                <td style="color:${isGive?'#c0392b':'#27ae60'}; font-weight:bold; font-size:16px;">
+                    ${isGive ? 'DR' : 'CR'} ${t.amount}
+                </td>
+            </tr>`;
+        });
+        document.getElementById('historyBody').innerHTML = html;
+        let statusText = bal > 0 ? `Debit (بنام): ${Math.abs(bal)}` : (bal < 0 ? `Credit (جمع): ${Math.abs(bal)}` : "Balance Clear");
+        document.getElementById('statusLabel').innerText = statusText;
+    }
+
+    function shareWhatsApp() {
+        let status = document.getElementById('statusLabel').innerText;
+        let data = JSON.parse(localStorage.getItem(DB_NAME));
+        let lastEntry = data[currentCustomer][data[currentCustomer].length - 1] || {};
+        let message = `*غضنفر لیدر*%0A` +
+                      `کسٹمر: ${currentCustomer}%0A` +
+                      `آخری تفصیل: ${lastEntry.note}%0A` +
+                      `آخری بل: ${lastEntry.bill}%0A` +
+                      `*کل بقیہ پوزیشن: ${status}*`;
+        window.open("https://api.whatsapp.com/send?text=" + message, '_blank');
+    }
+
+    function exportToCSV() {
+        let data = JSON.parse(localStorage.getItem(DB_NAME));
+        if(!data || Object.keys(data).length === 0) { alert("Data Empty!"); return; }
+        let csvContent = "\ufeffCustomer,Note,Bill,Amount,Type,Date\n";
+        for(let name in data) {
+            data[name].forEach(t => {
+                csvContent += `${name},${t.note},${t.bill},${t.amount},${t.type},${t.date}\n`;
+            });
+        }
+        let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        let url = URL.createObjectURL(blob);
+        let link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", "Leather_Khata_Backup.csv");
+        link.click();
+    }
+
+    function deleteCustomer() {
+        if(confirm("Are you sure? Mukammal record khatam ho jaye ga.")) {
+            let data = JSON.parse(localStorage.getItem(DB_NAME));
+            delete data[currentCustomer];
+            localStorage.setItem(DB_NAME, JSON.stringify(data));
+            goBack();
+        }
+    }
+</script>
+</body>
+</html>

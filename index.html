@@ -230,5 +230,12 @@
         }
     }
 </script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+      .then(() => console.log("App Ready!"))
+      .catch(() => console.log("Error!"));
+  }
+</script>
+
 </body>
 </html>

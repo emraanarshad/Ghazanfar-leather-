@@ -229,12 +229,17 @@
             goBack();
         }
     }
+        }
 </script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js')
-      .then(() => console.log("App Ready!"))
-      .catch(() => console.log("Error!"));
-  }
+
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('App Ready'))
+                .catch(err => console.log('Error', err));
+        });
+    }
 </script>
 
 </body>

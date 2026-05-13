@@ -229,12 +229,13 @@
             goBack();
         }
     }
-</script>
-</body>
-    <script>
+<script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
+    navigator.serviceWorker.register('sw.js')
+      .then(() => console.log("App ready!"))
+      .catch((err) => console.log("Registration failed", err));
   }
 </script>
 
-</html>
+    
+</body>

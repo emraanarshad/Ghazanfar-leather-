@@ -1,3 +1,4 @@
+
 {
   "short_name": "Ghazanfar",
   "name": "Ghazanfar Leather Pro",
@@ -6,11 +7,11 @@
       "src": "icon.png",
       "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ],
   "start_url": ".",
   "display": "standalone",
   "background_color": "#5d4037",
-  "theme_color": "#d35400" 
+  "theme_color": "#d35400"
 }

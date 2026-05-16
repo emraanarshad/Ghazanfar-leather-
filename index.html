@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="ur" dir="rtl">
+<html lang="ur" dir="rtl" id="appHtml">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mizan</title>
     
     <link rel="manifest" href="manifest.json">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         :root { --primary: #e67e22; --secondary: #f1c40f; --dark: #2c3e50; }
@@ -16,9 +17,18 @@
             color: white; padding: 25px 15px; text-align: center; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             border-bottom: 4px solid #ba4a00;
+            position: relative;
         }
         
-        /* Shandaar Gold & Orange Icon Style */
+        /* Language Button Style */
+        .lang-btn {
+            position: absolute; top: 15px; left: 15px;
+            background: rgba(255,255,255,0.2); color: white;
+            border: 1px solid white; padding: 6px 12px; border-radius: 20px;
+            font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.3s;
+        }
+        .lang-btn:hover { background: white; color: #d35400; }
+
         .app-logo { 
             width: 75px; height: 75px; 
             border-radius: 15px;
@@ -28,8 +38,12 @@
         }
 
         .container { padding: 15px; max-width: 500px; margin: auto; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; text-align: right; font-size: 16px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
         
+        /* RTL / LTR Text alignment classes */
+        .text-lang { text-align: right; }
+        .en-mode .text-lang { text-align: left; }
+
         .btn { padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 15px; text-align: center; }
         .btn-add { background: #2c3e50; color: white; width: 100%; margin-bottom: 15px; border-bottom: 3px solid #1a252f; }
         .btn-get { background: #27ae60; color: white; flex: 1; border-bottom: 3px solid #1e8449; }
@@ -37,36 +51,43 @@
         .btn-backup { background: #2980b9; color: white; width: 100%; margin-top: 25px; border-bottom: 3px solid #1f618d; }
         .btn-restore { background: #27ae60; color: white; width: 100%; margin-top: 10px; border-bottom: 3px solid #1e8449; display: inline-block; box-sizing: border-box; }
         
-        .cust-item { background: white; padding: 18px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 3px 10px rgba(0,0,0,0.08); cursor: pointer; border-right: 6px solid #e67e22; }
+        .btn-pdf { background: #8e44ad; color: white; width: 100%; margin-top: 10px; border-bottom: 3px solid #6c3483; }
+        .whatsapp-btn { background: #25D366; color: white; width: 100%; margin-top: 15px; border-bottom: 3px solid #128C7E; }
         
+        .cust-item { background: white; padding: 18px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 3px 10px rgba(0,0,0,0.08); cursor: pointer; border-right: 6px solid #e67e22; }
+        .en-mode .cust-item { border-right: none; border-left: 6px solid #e67e22; }
+
         #detailsView { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f4f7f6; z-index: 1000; overflow-y: auto; }
         .history-table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .history-table th { background: #ecf0f1; padding: 12px; border-bottom: 2px solid #ddd; font-size: 14px; color: #7f8c8d; }
         .history-table td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; font-size: 13px; }
         
-        .whatsapp-btn { background: #25D366; color: white; width: 100%; margin-top: 15px; border-bottom: 3px solid #128C7E; }
         .balance-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: center; }
+        
+        #pdfArea { padding: 20px; background: white; border-radius: 10px; }
     </style>
 </head>
 <body>
 
 <div id="homeView">
     <div class="header">
+        <button class="lang-btn" onclick="toggleLanguage()">English / اردو</button>
+        
         <img src="icon.png" class="app-logo" alt="Mizan Logo">
-        <h1 style="margin:0; letter-spacing: 1px;">میزان</h1>
-        <small style="opacity: 0.8;">ڈیجیٹل لیجر بک</small>
+        <h1 style="margin:0; letter-spacing: 1px;" id="mainTitle">میزان</h1>
+        <small style="opacity: 0.8;" id="subTitle">ڈیجیٹل لیجر بک</small>
     </div>
     <div class="container">
-        <input type="text" id="newCustName" placeholder="کسٹمر کا نام لکھیں...">
-        <button class="btn btn-add" onclick="addCustomer()">+ نیا کسٹمر شامل کریں</button>
+        <input type="text" id="newCustName" placeholder="کسٹمر کا نام لکھیں..." class="text-lang">
+        <button class="btn btn-add" id="btnAddCust" onclick="addCustomer()">+ نیا کسٹمر شامل کریں</button>
         
-        <input type="text" id="searchBar" placeholder="تلاش کریں (Search)..." onkeyup="loadHome()">
+        <input type="text" id="searchBar" placeholder="تلاش کریں (Search)..." onkeyup="loadHome()" class="text-lang">
         
         <div id="custList"></div>
         
-        <button class="btn btn-backup" onclick="exportToCSV()">📥 بیک اپ ڈاؤن لوڈ کریں (Excel File)</button>
+        <button class="btn btn-backup" id="btnBackup" onclick="exportToCSV()">📥 بیک اپ ڈاؤن لوڈ کریں (Excel File)</button>
         
-        <label for="restoreFile" class="btn btn-restore">📤 پرانا ڈیٹا واپس لوڈ کریں (CSV File)</label>
+        <label for="restoreFile" class="btn btn-restore" id="lblRestore">📤 پرانا ڈیٹا واپس لوڈ کریں (CSV File)</label>
         <input type="file" id="restoreFile" accept=".csv" onchange="importFromCSV(this)" style="display: none;">
     </div>
 </div>
@@ -74,40 +95,140 @@
 <div id="detailsView">
     <div class="header" style="padding: 15px;">
         <div style="display:flex; justify-content: space-between; align-items:center;">
-            <button onclick="goBack()" style="background:none; border:none; color:white; font-size:28px;">➜</button>
+            <button onclick="goBack()" style="background:none; border:none; color:white; font-size:28px;" id="backBtn">➜</button>
             <h2 id="activeCustTitle" style="margin:0;">کھاتہ</h2>
             <div id="statusLabel" style="font-size: 14px; background: rgba(0,0,0,0.2); padding: 5px 12px; border-radius: 20px; font-weight:bold;"></div>
         </div>
     </div>
     <div class="container">
-        <div class="balance-card">
-            <div style="display:flex; gap:8px;">
-                <input type="text" id="billNo" placeholder="بل نمبر (Bill No)">
-                <input type="text" id="transNote" placeholder="تفصیل (Note)">
+        <div id="pdfArea">
+            <div class="balance-card">
+                <div style="display:flex; gap:8px;" class="hide-on-pdf">
+                    <input type="text" id="billNo" placeholder="بل نمبر (Bill No)" class="text-lang">
+                    <input type="text" id="transNote" placeholder="تفصیل (Note)" class="text-lang">
+                </div>
+                <input type="number" id="transAmount" placeholder="رقم (Amount)" class="text-lang hide-on-pdf">
+                <div style="display:flex; gap:10px; margin-top:10px;" class="hide-on-pdf">
+                    <button class="btn btn-get" id="btnCredit" onclick="saveTrans('get')">Credit (جمع)</button>
+                    <button class="btn btn-give" id="btnDebit" onclick="saveTrans('give')">Debit (بنام)</button>
+                </div>
             </div>
-            <input type="number" id="transAmount" placeholder="رقم (Amount)">
-            <div style="display:flex; gap:10px; margin-top:10px;">
-                <button class="btn btn-get" onclick="saveTrans('get')">Credit (جمع)</button>
-                <button class="btn btn-give" onclick="saveTrans('give')">Debit (بنام)</button>
-            </div>
+            
+            <table class="history-table">
+                <thead><tr id="tableHeader"><th>تفصیل / تاریخ</th><th>رقم</th></tr></thead>
+                <tbody id="historyBody"></tbody>
+            </table>
         </div>
         
-        <button class="btn whatsapp-btn" onclick="shareWhatsApp()">💬 WhatsApp پر تفصیل بھیجیں</button>
-
-        <table class="history-table">
-            <thead><tr><th>تفصیل / تاریخ</th><th>رقم</th></tr></thead>
-            <tbody id="historyBody"></tbody>
-        </table>
+        <button class="btn btn-pdf" id="btnPdfDownload" onclick="generatePDF()">📄 PDF Bill ڈاؤن لوڈ کریں</button>
+        <button class="btn whatsapp-btn" id="btnWhatsapp" onclick="shareWhatsApp()">💬 WhatsApp پر تفصیل بھیجیں</button>
         
-        <button class="btn" style="background:#ddd; color:#c0392b; width:100%; margin-top:40px;" onclick="deleteCustomer()">🗑️ کسٹمر ریکارڈ ختم کریں</button>
+        <button class="btn" style="background:#ddd; color:#c0392b; width:100%; margin-top:40px;" id="btnDeleteCust" onclick="deleteCustomer()">🗑️ کسٹمر ریکارڈ ختم کریں</button>
     </div>
 </div>
 
 <script>
     let currentCustomer = "";
     const DB_NAME = 'mizan_db_v1'; 
+    let currentLang = "ur"; // default language Urdu
 
-    window.onload = loadHome;
+    // Dictionary for Language text
+    const langData = {
+        ur: {
+            dir: "rtl",
+            mainTitle: "میزان",
+            subTitle: "ڈیجیٹل لیجر بک",
+            newCustName: "کسٹمر کا نام لکھیں...",
+            btnAddCust: "+ نیا کسٹمر شامل کریں",
+            searchBar: "تلاش کریں (Search)...",
+            btnBackup: "📥 بیک اپ ڈاؤن لوڈ کریں (Excel File)",
+            lblRestore: "📤 پرانا ڈیٹا واپس لوڈ کریں (CSV File)",
+            billNo: "بل نمبر (Bill No)",
+            transNote: "تفصیل (Note)",
+            transAmount: "رقم (Amount)",
+            btnCredit: "Credit (جمع)",
+            btnDebit: "Debit (بنام)",
+            btnPdfDownload: "📄 PDF Bill ڈاؤن لوڈ کریں",
+            btnWhatsapp: "💬 WhatsApp پر تفصیل بھیجیں",
+            btnDeleteCust: "🗑️ کسٹمر ریکارڈ ختم کریں",
+            tableHeader: "<th>تفصیل / تاریخ</th><th>رقم</th>",
+            debitTxt: "Debit (بنام)",
+            creditTxt: "Credit (جمع)",
+            clearTxt: "Clear",
+            backArrow: "➜",
+            msgSuccess: "Mubarak ho! Saara purana data kamyabi se load ho gaya hai.",
+            msgFormat: "Format sahi nahi hai!",
+            msgConfirm: "Are you sure? Mukammal record khatam ho jaye ga."
+        },
+        en: {
+            dir: "ltr",
+            mainTitle: "Mizan",
+            subTitle: "Digital Ledger Book",
+            newCustName: "Enter Customer Name...",
+            btnAddCust: "+ Add New Customer",
+            searchBar: "Search...",
+            btnBackup: "📥 Download Backup (Excel File)",
+            lblRestore: "📤 Restore Old Data (CSV File)",
+            billNo: "Bill No",
+            transNote: "Description / Note",
+            transAmount: "Amount",
+            btnCredit: "Credit (Received)",
+            btnDebit: "Debit (Given)",
+            btnPdfDownload: "📄 Download PDF Bill",
+            btnWhatsapp: "💬 Send Details via WhatsApp",
+            btnDeleteCust: "🗑️ Delete Customer Record",
+            tableHeader: "<th>Description / Date</th><th>Amount</th>",
+            debitTxt: "Debit",
+            creditTxt: "Credit",
+            clearTxt: "Clear",
+            backArrow: " canba", // left arrow entity handled dynamically
+            msgSuccess: "Success! All old data loaded successfully.",
+            msgFormat: "Invalid format!",
+            msgConfirm: "Are you sure you want to permanently delete this customer?"
+        }
+    };
+
+    window.onload = function() {
+        loadHome();
+    };
+
+    function toggleLanguage() {
+        currentLang = (currentLang === "ur") ? "en" : "ur";
+        const appHtml = document.getElementById('appHtml');
+        
+        // Apply Direction and Classes
+        appHtml.setAttribute('dir', langData[currentLang].dir);
+        if(currentLang === 'en') {
+            appHtml.classList.add('en-mode');
+            document.getElementById('backBtn').innerText = "⬅";
+        } else {
+            appHtml.classList.remove('en-mode');
+            document.getElementById('backBtn').innerText = "➜";
+        }
+
+        // Apply Translations
+        document.getElementById('mainTitle').innerText = langData[currentLang].mainTitle;
+        document.getElementById('subTitle').innerText = langData[currentLang].subTitle;
+        document.getElementById('newCustName').placeholder = langData[currentLang].newCustName;
+        document.getElementById('btnAddCust').innerText = langData[currentLang].btnAddCust;
+        document.getElementById('searchBar').placeholder = langData[currentLang].searchBar;
+        document.getElementById('btnBackup').innerText = langData[currentLang].btnBackup;
+        document.getElementById('lblRestore').innerText = langData[currentLang].lblRestore;
+        document.getElementById('billNo').placeholder = langData[currentLang].billNo;
+        document.getElementById('transNote').placeholder = langData[currentLang].transNote;
+        document.getElementById('transAmount').placeholder = langData[currentLang].transAmount;
+        document.getElementById('btnCredit').innerText = langData[currentLang].btnCredit;
+        document.getElementById('btnDebit').innerText = langData[currentLang].btnDebit;
+        document.getElementById('btnPdfDownload').innerText = langData[currentLang].btnPdfDownload;
+        document.getElementById('btnWhatsapp').innerText = langData[currentLang].btnWhatsapp;
+        document.getElementById('btnDeleteCust').innerText = langData[currentLang].btnDeleteCust;
+        document.getElementById('tableHeader').innerHTML = langData[currentLang].tableHeader;
+
+        loadHome();
+        if(currentCustomer) {
+            loadTransactions();
+        }
+    }
 
     function addCustomer() {
         let name = document.getElementById('newCustName').value.trim();
@@ -127,7 +248,8 @@
             if(name.toLowerCase().includes(search)) {
                 let bal = 0;
                 data[name].forEach(t => bal += (t.type=='give' ? parseFloat(t.amount) : -parseFloat(t.amount)));
-                let text = bal > 0 ? "Debit (بنام)" : (bal < 0 ? "Credit (جمع)" : "Clear");
+                
+                let text = bal > 0 ? langData[currentLang].debitTxt : (bal < 0 ? langData[currentLang].creditTxt : langData[currentLang].clearTxt);
                 let color = bal > 0 ? "#c0392b" : (bal < 0 ? "#27ae60" : "gray");
                 html += `<div class="cust-item" onclick="viewDetails('${name}')">
                     <span><strong>${name}</strong></span>
@@ -146,7 +268,6 @@
         loadTransactions();
     }
 
-    // Function to Restore Data from Backup File
     function importFromCSV(input) {
         const file = input.files[0];
         if (!file) return;
@@ -157,12 +278,10 @@
             const lines = text.split('\n');
             let importedData = {};
 
-            // Processing lines skipping header
             for (let i = 1; i < lines.length; i++) {
                 let line = lines[i].trim();
                 if (!line) continue;
 
-                // Split by comma
                 let parts = line.split(',');
                 if (parts.length < 6) continue;
 
@@ -178,20 +297,16 @@
                 }
 
                 importedData[customer].push({
-                    amount: amount,
-                    note: note,
-                    bill: bill,
-                    type: type,
-                    date: date
+                    amount: amount, note: note, bill: bill, type: type, date: date
                 });
             }
 
             if (Object.keys(importedData).length > 0) {
                 localStorage.setItem(DB_NAME, JSON.stringify(importedData));
-                alert("Mubarak ho! Saara purana data kamyabi se load ho gaya hai.");
+                alert(langData[currentLang].msgSuccess);
                 loadHome();
             } else {
-                alert("File khali hai ya format sahi nahi hai!");
+                alert(langData[currentLang].msgFormat);
             }
         };
         reader.readAsText(file);
@@ -200,6 +315,7 @@
     function goBack() { 
         document.getElementById('homeView').style.display = "block";
         document.getElementById('detailsView').style.display = "none";
+        currentCustomer = "";
         loadHome(); 
     }
 
@@ -227,8 +343,10 @@
         history.slice().reverse().forEach(t => {
             let isGive = t.type == 'give';
             bal += isGive ? parseFloat(t.amount) : -parseFloat(t.amount);
+            
+            let alignStyle = (currentLang === 'ur') ? 'text-align:right;' : 'text-align:left;';
             html += `<tr>
-                <td style="text-align:right;">
+                <td style="${alignStyle}">
                     <small style="color:#7f8c8d;">Bill: ${t.bill}</small><br>
                     <strong>${t.note}</strong><br>
                     <small style="color:#999; font-size:10px;">${t.date}</small>
@@ -239,7 +357,7 @@
             </tr>`;
         });
         document.getElementById('historyBody').innerHTML = html;
-        let statusText = bal > 0 ? `Debit (بنام): ${Math.abs(bal)}` : (bal < 0 ? `Credit (جمع): ${Math.abs(bal)}` : "Balance Clear");
+        let statusText = bal > 0 ? `${langData[currentLang].debitTxt}: ${Math.abs(bal)}` : (bal < 0 ? `${langData[currentLang].creditTxt}: ${Math.abs(bal)}` : langData[currentLang].clearTxt);
         document.getElementById('statusLabel').innerText = statusText;
     }
 
@@ -247,12 +365,36 @@
         let status = document.getElementById('statusLabel').innerText;
         let data = JSON.parse(localStorage.getItem(DB_NAME));
         let lastEntry = data[currentCustomer][data[currentCustomer].length - 1] || {};
-        let message = `*میزان*%0A` +
-                      `کسٹمر: ${currentCustomer}%0A` +
-                      `آخری تفصیل: ${lastEntry.note}%0A` +
-                      `آخری بل: ${lastEntry.bill}%0A` +
-                      `*کل بقیہ پوزیشن: ${status}*`;
+        let headTxt = (currentLang === 'ur') ? '*میزان*' : '*Mizan App*';
+        let custTxt = (currentLang === 'ur') ? 'کسٹمر' : 'Customer';
+        let lastN = (currentLang === 'ur') ? 'آخری تفصیل' : 'Last Note';
+        let lastB = (currentLang === 'ur') ? 'آخری بل' : 'Last Bill';
+        let totalTxt = (currentLang === 'ur') ? '*کل بقیہ پوزیشن' : '*Total Status';
+
+        let message = `${headTxt}%0A` +
+                      `${custTxt}: ${currentCustomer}%0A` +
+                      `${lastN}: ${lastEntry.note || '-'}%0A` +
+                      `${lastB}: ${lastEntry.bill || '-'}%0A` +
+                      `${totalTxt}: ${status}*`;
         window.open("https://api.whatsapp.com/send?text=" + message, '_blank');
+    }
+
+    function generatePDF() {
+        const element = document.getElementById('pdfArea');
+        const inputs = document.querySelectorAll('.hide-on-pdf');
+        inputs.forEach(el => el.style.display = 'none');
+
+        const opt = {
+            margin:       10,
+            filename:     `${currentCustomer}_Mizan_Bill.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().from(element).set(opt).save().then(() => {
+            inputs.forEach(el => el.style.display = '');
+        });
     }
 
     function exportToCSV() {
@@ -273,7 +415,7 @@
     }
 
     function deleteCustomer() {
-        if(confirm("Are you sure? Mukammal record khatam ho jaye ga.")) {
+        if(confirm(langData[currentLang].msgConfirm)) {
             let data = JSON.parse(localStorage.getItem(DB_NAME));
             delete data[currentCustomer];
             localStorage.setItem(DB_NAME, JSON.stringify(data));

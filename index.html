@@ -198,7 +198,7 @@
         let status = document.getElementById('statusLabel').innerText;
         let data = JSON.parse(localStorage.getItem(DB_NAME));
         let lastEntry = data[currentCustomer][data[currentCustomer].length - 1] || {};
-        let message = `*غضنفر لیدر*%0A` +
+        let message = `*میزان*%0A` +
                       `کسٹمر: ${currentCustomer}%0A` +
                       `آخری تفصیل: ${lastEntry.note}%0A` +
                       `آخری بل: ${lastEntry.bill}%0A` +
